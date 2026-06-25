@@ -36,6 +36,88 @@ const tipoInstituicaoOptions = [
     { value: "MEDIO", label: "Médio" },
 ];
 
+// --- Location cascading ---
+const paises = ref<any[]>([]);
+const provincias = ref<any[]>([]);
+const municipios = ref<any[]>([]);
+const bairros = ref<any[]>([]);
+
+const selectedPais = ref("");
+const selectedProvincia = ref("");
+const selectedMunicipio = ref("");
+const selectedBairroId = ref("");
+const bairroSearch = ref("");
+
+const loadingPaises = ref(false);
+const loadingProvincias = ref(false);
+const loadingMunicipios = ref(false);
+const loadingBairros = ref(false);
+
+async function loadPaises() {
+    loadingPaises.value = true;
+    try {
+        const data = await auth.apiRequest<any[]>("/localizacao/pais", { method: "GET" });
+        paises.value = data ?? [];
+    } catch { paises.value = []; } finally { loadingPaises.value = false; }
+}
+
+async function loadProvincias(paisId: string) {
+    provincias.value = [];
+    selectedProvincia.value = "";
+    selectedMunicipio.value = "";
+    selectedBairroId.value = "";
+    if (!paisId) return;
+    loadingProvincias.value = true;
+    try {
+        const data = await auth.apiRequest<any[]>(`/localizacao/provincia?paisId=${paisId}`, { method: "GET" });
+        provincias.value = data ?? [];
+    } catch { provincias.value = []; } finally { loadingProvincias.value = false; }
+}
+
+async function loadMunicipios(provinciaId: string) {
+    municipios.value = [];
+    selectedMunicipio.value = "";
+    selectedBairroId.value = "";
+    if (!provinciaId) return;
+    loadingMunicipios.value = true;
+    try {
+        const data = await auth.apiRequest<any[]>(`/localizacao/municipio?provinciaId=${provinciaId}`, { method: "GET" });
+        municipios.value = data ?? [];
+    } catch { municipios.value = []; } finally { loadingMunicipios.value = false; }
+}
+
+async function loadBairros(municipioId: string) {
+    bairros.value = [];
+    selectedBairroId.value = "";
+    if (!municipioId) return;
+    loadingBairros.value = true;
+    try {
+        const data = await auth.apiRequest<any[]>(`/localizacao/bairro?municipioId=${municipioId}`, { method: "GET" });
+        bairros.value = data ?? [];
+    } catch { bairros.value = []; } finally { loadingBairros.value = false; }
+}
+
+watch(selectedPais, (val) => loadProvincias(val));
+watch(selectedProvincia, (val) => loadMunicipios(val));
+watch(selectedMunicipio, (val) => loadBairros(val));
+
+const filteredBairros = computed(() => {
+    if (!bairroSearch.value) return bairros.value;
+    return bairros.value.filter((b: any) =>
+        b.descricao?.toLowerCase().includes(bairroSearch.value.toLowerCase()),
+    );
+});
+
+const selectedBairroLabel = computed(() => {
+    return bairros.value.find((b: any) => b.id === selectedBairroId.value)?.descricao ?? "";
+});
+
+function selectBairro(id: string, nome: string) {
+    selectedBairroId.value = id;
+    bairroSearch.value = nome;
+    newInstitution.bairro = id;
+}
+
 const isAdmin = computed(() =>
     ["ROLE_ADMIN", "ROLE_ADMIN_INSTITUICAO"].includes(auth.activeRole ?? "")
 );
@@ -48,6 +130,11 @@ const institutions = computed(() =>
     ),
 );
 
+function openCreateModal() {
+    showCreateModal.value = true;
+    if (paises.value.length === 0) loadPaises();
+}
+
 async function handleCreate() {
     creating.value = true;
     try {
@@ -57,7 +144,7 @@ async function handleCreate() {
             tipoInstituicao: newInstitution.tipoInstituicao,
             numeroDeTelefone: newInstitution.numeroDeTelefone,
             email: newInstitution.email,
-            bairro: newInstitution.bairro,
+            bairro: selectedBairroId.value,
         });
         toast.success("Instituição criada com sucesso.");
         showCreateModal.value = false;
@@ -76,6 +163,14 @@ function resetForm() {
     newInstitution.numeroDeTelefone = "";
     newInstitution.email = "";
     newInstitution.bairro = "";
+    selectedPais.value = "";
+    selectedProvincia.value = "";
+    selectedMunicipio.value = "";
+    selectedBairroId.value = "";
+    bairroSearch.value = "";
+    provincias.value = [];
+    municipios.value = [];
+    bairros.value = [];
 }
 </script>
 
