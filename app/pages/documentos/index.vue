@@ -21,32 +21,56 @@ const { getDocumentTypeLabel, getDocumentStatusMeta, getRoleMeta, documentTypeOp
 const search = ref("");
 const selectedStatus = ref("");
 const selectedType = ref("");
+const selectedInstitution = ref("");
+const selectedCategory = ref("");
+const selectedTag = ref("");
 const showOnlyMine = ref(true);
 
 const filteredDocuments = computed(() =>
     docs.myDocuments.filter((document) => {
         const matchesSearch =
             !search.value ||
-            `${document.title} ${document.summary}`
+            `${document.title} ${(document.authors ?? []).join(" ")} ${document.userName ?? ""} ${(document.categories ?? []).join(" ")} ${(document.tags ?? []).join(" ")}`
                 .toLowerCase()
                 .includes(search.value.toLowerCase());
         const matchesStatus =
             !selectedStatus.value || document.status === selectedStatus.value;
         const matchesType =
             !selectedType.value || document.type === selectedType.value;
+        const matchesInstitution =
+            !selectedInstitution.value || document.institutionId === selectedInstitution.value;
+        const matchesCategory =
+            !selectedCategory.value || (document.categories ?? []).includes(selectedCategory.value);
+        const matchesTag =
+            !selectedTag.value || (document.tags ?? []).includes(selectedTag.value);
         const matchesOwner =
             !showOnlyMine.value ||
             document.userId === auth.currentUser?.id;
-        const matchesCategory =
+        const matchesTypeFilter =
             document.type !== "REPOSITORIO" && document.type !== "ZIP";
-        return matchesSearch && matchesStatus && matchesType && matchesOwner && matchesCategory;
+        return matchesSearch && matchesStatus && matchesType && matchesInstitution && matchesCategory && matchesTag && matchesOwner && matchesTypeFilter;
     }),
 );
+
+const availableCategories = computed(() => {
+    const cats = new Set<string>();
+    docs.myDocuments.forEach((d) => (d.categories ?? []).forEach((c) => cats.add(c)));
+    return Array.from(cats).sort();
+});
+
+const availableTags = computed(() => {
+    const tags = new Set<string>();
+    docs.myDocuments.forEach((d) => (d.tags ?? []).forEach((t) => tags.add(t)));
+    return Array.from(tags).sort();
+});
 
 // Detail modal
 const detailOpen = ref(false);
 const selectedDocId = ref<string | null>(null);
 const aiSuggestionsDetail = ref<import("~/types/platform").AISuggestion | null>(null);
+const showAiSuggestionsDetail = computed(() =>
+    aiSuggestionsDetail.value?.pendenteConfirmacao ? aiSuggestionsDetail.value : null,
+);
 const loadingAiDetail = ref(false);
 
 const selectedDoc = computed(() => {
@@ -135,6 +159,12 @@ async function handleConfirmClick() {
     if (!selectedDoc.value) return;
     confirmingMetadata.value = true;
     try {
+        if (aiSuggestionsDetail.value) {
+            editable.title = stripConfidence(aiSuggestionsDetail.value.tituloSugerido || editable.title);
+            editable.summary = aiSuggestionsDetail.value.resumoGeradoIA || editable.summary;
+            editable.categories = stripConfidence(aiSuggestionsDetail.value.categoriaSugerida || editable.categories);
+            editable.tags = aiSuggestionsDetail.value.tagsSugeridas.map(t => t.valor).join(", ") || editable.tags;
+        }
         await docs.updateDocumentMetadata(selectedDoc.value.id, {
             title: stripConfidence(editable.title),
             summary: editable.summary,
@@ -372,7 +402,7 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                 <input
                     v-model="search"
                     class="input-base"
-                    placeholder="Título ou resumo"
+                    placeholder="Título, autor, instituição..."
                 />
             </div>
             <div>
@@ -395,10 +425,40 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                     <option value="MONOGRAFIA">Monografia</option>
                     <option value="RELATORIO">Relatório</option>
                     <option value="ARTIGO">Artigo</option>
-
+                    <option value="REPOSITORIO">Repositório</option>
+                    <option value="ZIP">Ficheiro ZIP</option>
                     <option value="LIVRO">Livro</option>
                     <option value="SEMINARIO">Seminário</option>
                     <option value="INDEFINIDO">Indefinido (IA)</option>
+                </select>
+            </div>
+            <div>
+                <label class="label-base">Instituição</label>
+                <select v-model="selectedInstitution" class="input-base">
+                    <option value="">Todas</option>
+                    <option v-for="i in inst.institutions" :key="i.id" :value="i.id">
+                        {{ i.name }}
+                    </option>
+                </select>
+            </div>
+        </section>
+        <section class="card grid gap-4 p-5 md:grid-cols-4">
+            <div>
+                <label class="label-base">Categoria</label>
+                <select v-model="selectedCategory" class="input-base">
+                    <option value="">Todas</option>
+                    <option v-for="cat in availableCategories" :key="cat" :value="cat">
+                        {{ cat }}
+                    </option>
+                </select>
+            </div>
+            <div>
+                <label class="label-base">Tag</label>
+                <select v-model="selectedTag" class="input-base">
+                    <option value="">Todas</option>
+                    <option v-for="tag in availableTags" :key="tag" :value="tag">
+                        {{ tag }}
+                    </option>
                 </select>
             </div>
             <div>
@@ -585,19 +645,19 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                                         <div class="md:col-span-2">
                                             <label class="label-base">Título</label>
                                             <input v-model="editable.title" class="input-base" @focus="focusField('title')" />
-                                            <div v-if="aiSuggestionsDetail?.tituloSugerido" class="mt-1 flex flex-wrap gap-1">
+                                            <div v-if="showAiSuggestionsDetail?.tituloSugerido" class="mt-1 flex flex-wrap gap-1">
                                                 <span class="badge bg-amber-50 text-amber-700 text-xs cursor-pointer hover:bg-amber-100"
-                                                    @click="editable.title = `${aiSuggestionsDetail.tituloSugerido} (${aiSuggestionsDetail.tituloConfianca}%)`">
-                                                    {{ aiSuggestionsDetail.tituloSugerido }} ({{ aiSuggestionsDetail.tituloConfianca }}%)
+                                                    @click="editable.title = `${showAiSuggestionsDetail.tituloSugerido} (${showAiSuggestionsDetail.tituloConfianca}%)`">
+                                                    {{ showAiSuggestionsDetail.tituloSugerido }} ({{ showAiSuggestionsDetail.tituloConfianca }}%)
                                                 </span>
                                             </div>
                                         </div>
                                         <div class="md:col-span-2">
                                             <label class="label-base">Resumo</label>
                                             <textarea v-model="editable.summary" class="input-base min-h-24" />
-                                            <div v-if="aiSuggestionsDetail?.resumoGeradoIA" class="mt-1 flex flex-wrap gap-1">
+                                            <div v-if="showAiSuggestionsDetail?.resumoGeradoIA" class="mt-1 flex flex-wrap gap-1">
                                                 <span class="badge bg-amber-50 text-amber-700 text-xs cursor-pointer hover:bg-amber-100"
-                                                    @click="editable.summary = aiSuggestionsDetail.resumoGeradoIA">
+                                                    @click="editable.summary = showAiSuggestionsDetail.resumoGeradoIA">
                                                     Usar resumo da IA
                                                 </span>
                                             </div>
@@ -617,19 +677,19 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                                         <div>
                                             <label class="label-base">Categorias</label>
                                             <input v-model="editable.categories" class="input-base" placeholder="Web, IA" @focus="focusField('categories')" />
-                                            <div v-if="aiSuggestionsDetail?.categoriaSugerida" class="mt-1 flex flex-wrap gap-1">
+                                            <div v-if="showAiSuggestionsDetail?.categoriaSugerida" class="mt-1 flex flex-wrap gap-1">
                                                 <span class="badge bg-amber-50 text-amber-700 text-xs cursor-pointer hover:bg-amber-100"
-                                                    @click="editable.categories = aiSuggestionsDetail.categoriaSugerida">
-                                                    {{ aiSuggestionsDetail.categoriaSugerida }} ({{ aiSuggestionsDetail.categoriaConfianca }}%)
+                                                    @click="editable.categories = showAiSuggestionsDetail.categoriaSugerida">
+                                                    {{ showAiSuggestionsDetail.categoriaSugerida }} ({{ showAiSuggestionsDetail.categoriaConfianca }}%)
                                                 </span>
                                             </div>
                                         </div>
                                         <div>
                                             <label class="label-base">Tags</label>
                                             <input v-model="editable.tags" class="input-base" placeholder="nuxt, spring" />
-                                            <div v-if="aiSuggestionsDetail?.tagsSugeridas.length" class="mt-1 flex flex-wrap gap-1">
+                                            <div v-if="showAiSuggestionsDetail?.tagsSugeridas.length" class="mt-1 flex flex-wrap gap-1">
                                                 <span
-                                                    v-for="tag in aiSuggestionsDetail.tagsSugeridas"
+                                                    v-for="tag in showAiSuggestionsDetail.tagsSugeridas"
                                                     :key="tag.valor"
                                                     class="badge bg-indigo-50 text-indigo-700 text-xs cursor-pointer hover:bg-indigo-100"
                                                     @click="editable.tags = editable.tags ? editable.tags + ', ' + tag.valor : tag.valor"

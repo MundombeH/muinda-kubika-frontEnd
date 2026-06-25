@@ -243,9 +243,9 @@ export const useDocumentsStore = defineStore("documents", () => {
       updateDocument(documentId, { status: "PUBLICADO" });
       addReviewHistory(documentId, "PUBLICADO", reason);
       toast.success("Documento publicado com sucesso.");
-    } catch {
-      updateDocument(documentId, { status: "PUBLICADO" });
-      addReviewHistory(documentId, "PUBLICADO", reason);
+    } catch (error) {
+      toast.error(toFriendlyApiErrorMessage(error, "Não foi possível publicar o documento."));
+      throw error;
     }
   }
 

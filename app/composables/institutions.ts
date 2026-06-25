@@ -31,6 +31,22 @@ export const useInstitutionsStore = defineStore("institutions", () => {
     }
   }
 
+  async function createInstitution(payload: {
+    descricao: string;
+    anoDeFundacao: number;
+    tipoInstituicao: string[];
+    numeroDeTelefone: string;
+    email: string;
+    bairro: string;
+  }) {
+    const created = await auth.apiRequest<any>("/instituicao", {
+      method: "POST",
+      body: payload,
+    });
+    institutions.value = [mapInstitution(created), ...institutions.value];
+    return created;
+  }
+
   function getInstitutionName(institutionId: string) {
     return institutions.value.find((item) => item.id === institutionId)?.name ?? "Instituição não definida";
   }
@@ -39,6 +55,7 @@ export const useInstitutionsStore = defineStore("institutions", () => {
     institutions,
     loading,
     loadInstitutions,
+    createInstitution,
     getInstitutionName,
   };
 });

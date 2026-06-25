@@ -68,6 +68,9 @@ const editable = reactive({
 });
 
 const aiSuggestions = ref<import("~/types/platform").AISuggestion | null>(null);
+const showAiSuggestions = computed(() =>
+    aiSuggestions.value?.pendenteConfirmacao ? aiSuggestions.value : null,
+);
 const loadingAi = ref(false);
 const saving = ref(false);
 const confirming = ref(false);
@@ -292,13 +295,13 @@ if (!documentItem.value) {
             </button>
         </div>
 
-        <section v-if="aiSuggestions?.conflitosDetectados?.length" class="rounded-xl border border-red-200 bg-red-50 p-4">
+        <section v-if="showAiSuggestions?.conflitosDetectados?.length" class="rounded-xl border border-red-200 bg-red-50 p-4">
             <div class="flex items-start gap-3">
                 <Icon name="heroicons:exclamation-triangle" class="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
                 <div>
                     <h3 class="text-sm font-bold text-red-800">Conflitos detectados pela IA</h3>
                     <ul class="mt-1 list-inside list-disc text-sm text-red-700">
-                        <li v-for="conflito in aiSuggestions.conflitosDetectados" :key="conflito">
+                        <li v-for="conflito in showAiSuggestions.conflitosDetectados" :key="conflito">
                             {{ conflito }}
                         </li>
                     </ul>
@@ -321,10 +324,10 @@ if (!documentItem.value) {
                 <div class="md:col-span-2">
                     <label class="label-base">Título</label>
                     <input v-model="editable.title" class="input-base" @focus="focusField('title')" />
-                    <div v-if="aiSuggestions?.tituloSugerido" class="mt-1 flex flex-wrap gap-1">
+                    <div v-if="showAiSuggestions?.tituloSugerido" class="mt-1 flex flex-wrap gap-1">
                         <span class="badge bg-amber-50 text-amber-700 text-xs cursor-pointer hover:bg-amber-100"
-                            @click="editable.title = `${aiSuggestions.tituloSugerido} (${aiSuggestions.tituloConfianca}%)`">
-                            {{ aiSuggestions.tituloSugerido }} ({{ aiSuggestions.tituloConfianca }}%)
+                            @click="editable.title = `${showAiSuggestions.tituloSugerido} (${showAiSuggestions.tituloConfianca}%)`">
+                            {{ showAiSuggestions.tituloSugerido }} ({{ showAiSuggestions.tituloConfianca }}%)
                         </span>
                     </div>
                 </div>
@@ -334,9 +337,9 @@ if (!documentItem.value) {
                         v-model="editable.summary"
                         class="input-base min-h-28"
                     />
-                    <div v-if="aiSuggestions?.resumoGeradoIA" class="mt-1 flex flex-wrap gap-1">
+                    <div v-if="showAiSuggestions?.resumoGeradoIA" class="mt-1 flex flex-wrap gap-1">
                         <span class="badge bg-amber-50 text-amber-700 text-xs cursor-pointer hover:bg-amber-100"
-                            @click="editable.summary = aiSuggestions.resumoGeradoIA">
+                            @click="editable.summary = showAiSuggestions.resumoGeradoIA">
                             Usar resumo da IA
                         </span>
                     </div>
@@ -369,10 +372,10 @@ if (!documentItem.value) {
                         placeholder="Web, IA"
                         @focus="focusField('categories')"
                     />
-                    <div v-if="aiSuggestions?.categoriaSugerida" class="mt-1 flex flex-wrap gap-1">
+                    <div v-if="showAiSuggestions?.categoriaSugerida" class="mt-1 flex flex-wrap gap-1">
                         <span class="badge bg-amber-50 text-amber-700 text-xs cursor-pointer hover:bg-amber-100"
-                            @click="editable.categories = aiSuggestions.categoriaSugerida">
-                            {{ aiSuggestions.categoriaSugerida }} ({{ aiSuggestions.categoriaConfianca }}%)
+                            @click="editable.categories = showAiSuggestions.categoriaSugerida">
+                            {{ showAiSuggestions.categoriaSugerida }} ({{ showAiSuggestions.categoriaConfianca }}%)
                         </span>
                     </div>
                 </div>
@@ -383,9 +386,9 @@ if (!documentItem.value) {
                         class="input-base"
                         placeholder="nuxt, spring"
                     />
-                    <div v-if="aiSuggestions?.tagsSugeridas.length" class="mt-1 flex flex-wrap gap-1">
+                    <div v-if="showAiSuggestions?.tagsSugeridas.length" class="mt-1 flex flex-wrap gap-1">
                         <span
-                            v-for="tag in aiSuggestions.tagsSugeridas"
+                            v-for="tag in showAiSuggestions.tagsSugeridas"
                             :key="tag.valor"
                             class="badge bg-indigo-50 text-indigo-700 text-xs cursor-pointer hover:bg-indigo-100"
                             @click="editable.tags = editable.tags ? editable.tags + ', ' + tag.valor : tag.valor"
@@ -397,9 +400,9 @@ if (!documentItem.value) {
                 <div class="md:col-span-2">
                     <label class="label-base">Palavras-chave (IA)</label>
                     <div class="mt-1 flex flex-wrap gap-1">
-                        <template v-if="aiSuggestions?.palavrasChaveIA?.length">
+                        <template v-if="showAiSuggestions?.palavrasChaveIA?.length">
                             <span
-                                v-for="kw in aiSuggestions.palavrasChaveIA"
+                                v-for="kw in showAiSuggestions.palavrasChaveIA"
                                 :key="kw.valor"
                                 class="badge bg-amber-50 text-amber-700 text-xs"
                             >
@@ -412,9 +415,9 @@ if (!documentItem.value) {
                 <div class="md:col-span-2">
                     <label class="label-base">Tecnologias (IA)</label>
                     <div class="mt-1 flex flex-wrap gap-1">
-                        <template v-if="aiSuggestions?.tecnologiasSugeridas?.length">
+                        <template v-if="showAiSuggestions?.tecnologiasSugeridas?.length">
                             <span
-                                v-for="tec in aiSuggestions.tecnologiasSugeridas"
+                                v-for="tec in showAiSuggestions.tecnologiasSugeridas"
                                 :key="tec.valor"
                                 class="badge bg-emerald-50 text-emerald-700 text-xs"
                             >
@@ -427,9 +430,9 @@ if (!documentItem.value) {
                 <div class="md:col-span-2">
                     <label class="label-base">Frameworks (IA)</label>
                     <div class="mt-1 flex flex-wrap gap-1">
-                        <template v-if="aiSuggestions?.frameworksSugeridos?.length">
+                        <template v-if="showAiSuggestions?.frameworksSugeridos?.length">
                             <span
-                                v-for="fw in aiSuggestions.frameworksSugeridos"
+                                v-for="fw in showAiSuggestions.frameworksSugeridos"
                                 :key="fw.valor"
                                 class="badge bg-purple-50 text-purple-700 text-xs"
                             >
@@ -586,34 +589,34 @@ if (!documentItem.value) {
                     </div>
                 </div>
 
-                <div v-if="aiSuggestions" class="mt-6 border-t border-slate-100 pt-6">
+                <div v-if="showAiSuggestions" class="mt-6 border-t border-slate-100 pt-6">
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">
                         Sugestões da IA
                     </p>
-                    <div v-if="aiSuggestions.subcategoriaSugerida" class="mb-3">
+                    <div v-if="showAiSuggestions.subcategoriaSugerida" class="mb-3">
                         <span class="text-xs text-slate-500">Subcategoria:</span>
-                        <span class="ml-1 text-sm font-medium text-slate-700">{{ aiSuggestions.subcategoriaSugerida }} ({{ aiSuggestions.subcategoriaConfianca }}%)</span>
+                        <span class="ml-1 text-sm font-medium text-slate-700">{{ showAiSuggestions.subcategoriaSugerida }} ({{ showAiSuggestions.subcategoriaConfianca }}%)</span>
                     </div>
-                    <div v-if="aiSuggestions.palavrasChaveIA?.length" class="mb-3">
+                    <div v-if="showAiSuggestions.palavrasChaveIA?.length" class="mb-3">
                         <span class="text-xs text-slate-500">Palavras-chave:</span>
                         <div class="mt-1 flex flex-wrap gap-1">
-                            <span v-for="kw in aiSuggestions.palavrasChaveIA" :key="kw.valor" class="badge bg-amber-50 text-amber-700 text-xs">
+                            <span v-for="kw in showAiSuggestions.palavrasChaveIA" :key="kw.valor" class="badge bg-amber-50 text-amber-700 text-xs">
                                 {{ kw.valor }} ({{ kw.confianca }}%)
                             </span>
                         </div>
                     </div>
-                    <div v-if="aiSuggestions.tecnologiasSugeridas?.length" class="mb-3">
+                    <div v-if="showAiSuggestions.tecnologiasSugeridas?.length" class="mb-3">
                         <span class="text-xs text-slate-500">Tecnologias:</span>
                         <div class="mt-1 flex flex-wrap gap-1">
-                            <span v-for="tec in aiSuggestions.tecnologiasSugeridas" :key="tec.valor" class="badge bg-emerald-50 text-emerald-700 text-xs">
+                            <span v-for="tec in showAiSuggestions.tecnologiasSugeridas" :key="tec.valor" class="badge bg-emerald-50 text-emerald-700 text-xs">
                                 {{ tec.valor }} ({{ tec.confianca }}%)
                             </span>
                         </div>
                     </div>
-                    <div v-if="aiSuggestions.frameworksSugeridos?.length">
+                    <div v-if="showAiSuggestions.frameworksSugeridos?.length">
                         <span class="text-xs text-slate-500">Frameworks:</span>
                         <div class="mt-1 flex flex-wrap gap-1">
-                            <span v-for="fw in aiSuggestions.frameworksSugeridos" :key="fw.valor" class="badge bg-purple-50 text-purple-700 text-xs">
+                            <span v-for="fw in showAiSuggestions.frameworksSugeridos" :key="fw.valor" class="badge bg-purple-50 text-purple-700 text-xs">
                                 {{ fw.valor }} ({{ fw.confianca }}%)
                             </span>
                         </div>
