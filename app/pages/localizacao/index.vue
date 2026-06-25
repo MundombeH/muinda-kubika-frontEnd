@@ -137,7 +137,7 @@ function openEditModal(item: any) {
     editingItem.value = item;
     newItem.descricao = item.descricao;
     newItem.paisId = item.pais?.id ?? "";
-    newItem.provinciaId = item.provincia?.id ?? "";
+    newItem.provinciaId = item.provinciaId?.id ?? item.provincia?.id ?? "";
     newItem.municipioId = item.municipio?.id ?? "";
     showCreateModal.value = true;
 }
@@ -185,7 +185,7 @@ async function handleDelete(item: any) {
 
 function getParentName(item: any): string {
     if (activeTab.value === "provincias") return item.pais?.descricao ?? "";
-    if (activeTab.value === "municipios") return item.provincia?.descricao ?? "";
+    if (activeTab.value === "municipios") return item.provinciaId?.descricao ?? "";
     if (activeTab.value === "bairros") return item.municipio?.descricao ?? "";
     return "";
 }
