@@ -22,7 +22,12 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo("/dashboard");
   }
 
-  docs.loadDocuments();
-  inst.loadInstitutions();
-  approvals.loadApprovals();
+  const isFirstLoad = !docs.loaded;
+  if (isFirstLoad) {
+    docs.loadDocuments();
+    inst.loadInstitutions();
+    if (["ROLE_ADMIN", "ROLE_ADMIN_INSTITUICAO"].includes(auth.activeRole ?? "")) {
+      approvals.loadApprovals();
+    }
+  }
 });

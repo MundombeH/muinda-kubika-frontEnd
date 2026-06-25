@@ -71,6 +71,7 @@ export const useDocumentsStore = defineStore("documents", () => {
 
   const documents = ref<AppDocument[]>([]);
   const loading = ref(false);
+  const loaded = ref(false);
 
   const myDocuments = computed(() => {
     if (!auth.currentUser) return [];
@@ -87,6 +88,7 @@ export const useDocumentsStore = defineStore("documents", () => {
     try {
       const data = await auth.apiRequest<any[]>("/documento", { method: "GET" });
       if (data) documents.value = data.map(mapDocument);
+      loaded.value = true;
     } catch {
       // API indisponível — lista vazia
     } finally {
@@ -294,6 +296,7 @@ export const useDocumentsStore = defineStore("documents", () => {
   return {
     documents,
     loading,
+    loaded,
     myDocuments,
     loadDocuments,
     createDocument,

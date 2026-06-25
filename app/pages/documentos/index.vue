@@ -22,8 +22,8 @@ const search = ref("");
 const selectedStatus = ref("");
 const selectedType = ref("");
 const selectedInstitution = ref("");
-const selectedCategory = ref("");
-const selectedTag = ref("");
+const selectedCategory = ref<string[]>([]);
+const selectedTag = ref<string[]>([]);
 const showOnlyMine = ref(true);
 
 const filteredDocuments = computed(() =>
@@ -40,15 +40,15 @@ const filteredDocuments = computed(() =>
         const matchesInstitution =
             !selectedInstitution.value || document.institutionId === selectedInstitution.value;
         const matchesCategory =
-            !selectedCategory.value || (document.categories ?? []).includes(selectedCategory.value);
+            !selectedCategory.value.length ||
+            (document.categories ?? []).some((c) => selectedCategory.value.includes(c));
         const matchesTag =
-            !selectedTag.value || (document.tags ?? []).includes(selectedTag.value);
+            !selectedTag.value.length ||
+            (document.tags ?? []).some((t) => selectedTag.value.includes(t));
         const matchesOwner =
             !showOnlyMine.value ||
             document.userId === auth.currentUser?.id;
-        const matchesTypeFilter =
-            document.type !== "REPOSITORIO" && document.type !== "ZIP";
-        return matchesSearch && matchesStatus && matchesType && matchesInstitution && matchesCategory && matchesTag && matchesOwner && matchesTypeFilter;
+        return matchesSearch && matchesStatus && matchesType && matchesInstitution && matchesCategory && matchesTag && matchesOwner;
     }),
 );
 
@@ -441,14 +441,13 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                     @update:model-value="(v: any) => selectedInstitution = v"
                 />
             </div>
-        </section>
-        <section class="card grid gap-4 p-5 md:grid-cols-4">
             <div>
                 <SearchSelect
                     :model-value="selectedCategory"
                     :options="availableCategories.map(c => ({ value: c, label: c }))"
                     placeholder="Todas"
                     label="Categoria"
+                    multiple
                     @update:model-value="(v: any) => selectedCategory = v"
                 />
             </div>
@@ -458,12 +457,12 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                     :options="availableTags.map(t => ({ value: t, label: t }))"
                     placeholder="Todas"
                     label="Tag"
+                    multiple
                     @update:model-value="(v: any) => selectedTag = v"
                 />
             </div>
-            <div>
-                <label class="label-base">Filtro</label>
-                <label class="mt-1 flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-600 cursor-pointer hover:border-indigo-200">
+            <div class="flex items-end">
+                <label class="mt-1 flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2.5 text-sm text-slate-600 cursor-pointer hover:border-indigo-200 w-full">
                     <input v-model="showOnlyMine" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
                     Os meus documentos
                 </label>
@@ -479,7 +478,7 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                 class="card cursor-pointer overflow-hidden transition hover:border-indigo-200 hover:shadow-md"
                 @click="openDetail(document.id)"
             >
-                <div class="relative h-52 bg-gradient-to-br from-indigo-100 to-slate-200">
+                <div class="relative h-48 bg-gradient-to-br from-indigo-100 to-slate-200">
                     <img
                         v-if="document.coverUrl"
                         :src="document.coverUrl"
@@ -488,33 +487,32 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                     />
                     <div
                         v-else
-                        class="flex h-full items-center justify-center"
+                        class="flex flex-col items-center justify-center gap-2"
                     >
                         <Icon
                             name="heroicons:document-text"
                             class="h-12 w-12 text-slate-400"
                         />
+                        <span class="text-xs font-medium text-slate-500">
+                            {{ getDocumentTypeLabel(document.type) }}
+                        </span>
                     </div>
                     <div class="absolute right-2 top-2">
                         <DocumentStatusBadge :status="document.status" :userId="document.userId" />
                     </div>
-                    <div
-                        class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent px-3 pb-2 pt-6"
-                    >
-                        <p class="text-xs font-medium text-white/80">
-                            {{ getDocumentTypeLabel(document.type) }}
-                        </p>
-                    </div>
                 </div>
                 <div class="p-4">
-                    <h2 class="line-clamp-1 text-sm font-bold text-slate-950 leading-snug">
+                    <h2 class="line-clamp-2 text-sm font-bold text-slate-950 leading-snug min-h-[2.5rem]">
                         {{ document.title }}
                     </h2>
-                    <p v-if="document.authors.length" class="mt-1 text-xs text-slate-500">
+                    <p v-if="document.authors.length" class="mt-1.5 text-xs text-slate-500">
                         {{ document.authors.slice(0, 2).join(", ") }}
                         <template v-if="document.authors.length > 2"> et al.</template>
                     </p>
-                    <p class="mt-1 line-clamp-2 text-xs text-slate-400">
+                    <p class="mt-1 line-clamp-1 text-xs text-slate-400">
+                        {{ inst.getInstitutionName(document.institutionId) || "—" }}
+                    </p>
+                    <p class="mt-1.5 line-clamp-2 text-xs text-slate-400">
                         {{ document.summary || "Sem resumo." }}
                     </p>
                 </div>
