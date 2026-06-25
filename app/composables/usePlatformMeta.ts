@@ -83,6 +83,24 @@ const navigation: NavItem[] = [
     icon: "heroicons:shield-check",
     roles: ["ROLE_ADMIN", "ROLE_ADMIN_INSTITUICAO"],
   },
+  {
+    label: "Localização",
+    to: "/localizacao",
+    icon: "heroicons:map-pin",
+    roles: ["ROLE_ADMIN"],
+  },
+  {
+    label: "Categorias",
+    to: "/categorias",
+    icon: "heroicons:tag",
+    roles: ["ROLE_ADMIN"],
+  },
+  {
+    label: "Tags",
+    to: "/tags",
+    icon: "heroicons:hashtag",
+    roles: ["ROLE_ADMIN"],
+  },
 ];
 
 const documentStatusMeta: Record<

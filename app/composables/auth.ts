@@ -55,6 +55,9 @@ const PATH_ACCESS_RULES: {
   { startsWith: "/aprovacoes", roles: ["ROLE_ADMIN", "ROLE_ADMIN_INSTITUICAO"], permissions: ["USUARIO_GERIR"] },
   { startsWith: "/documentos/revisao", roles: ["ROLE_ADMIN", "ROLE_ADMIN_INSTITUICAO"] },
   { startsWith: "/instituicoes", roles: ["ROLE_ADMIN", "ROLE_ADMIN_INSTITUICAO"], permissions: ["INSTITUICAO_GERIR"] },
+  { startsWith: "/localizacao", roles: ["ROLE_ADMIN"] },
+  { startsWith: "/categorias", roles: ["ROLE_ADMIN"] },
+  { startsWith: "/tags", roles: ["ROLE_ADMIN"] },
 ];
 
 export const useAuthStore = defineStore("auth", () => {

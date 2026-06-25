@@ -18,6 +18,9 @@ const pageTitle = computed(() => {
         "/aprovacoes": "Aprovações",
         "/instituicoes": "Instituições",
         "/usuarios": "Utilizadores",
+        "/localizacao": "Localização",
+        "/categorias": "Categorias",
+        "/tags": "Tags",
     };
 
     return map[route.path] ?? "Muinda Kubika";
