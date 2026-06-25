@@ -725,6 +725,36 @@ if (!documentItem.value) {
                         >
                     </div>
                 </div>
+                <div v-if="documentItem.tecnologiasSugeridas?.length" class="mt-5">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Tecnologias</p>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        <span
+                            v-for="t in documentItem.tecnologiasSugeridas"
+                            :key="t"
+                            class="badge bg-emerald-50 text-emerald-700"
+                        >{{ t }}</span>
+                    </div>
+                </div>
+                <div v-if="documentItem.frameworksSugeridos?.length" class="mt-5">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Frameworks</p>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        <span
+                            v-for="f in documentItem.frameworksSugeridos"
+                            :key="f"
+                            class="badge bg-purple-50 text-purple-700"
+                        >{{ f }}</span>
+                    </div>
+                </div>
+                <div v-if="documentItem.palavrasChaveIA?.length" class="mt-5">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Palavras-chave</p>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        <span
+                            v-for="k in documentItem.palavrasChaveIA"
+                            :key="k"
+                            class="badge bg-amber-50 text-amber-700"
+                        >{{ k }}</span>
+                    </div>
+                </div>
 
                 <div v-if="hasAnyAiData" class="mt-6 border-t border-slate-100 pt-6">
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">

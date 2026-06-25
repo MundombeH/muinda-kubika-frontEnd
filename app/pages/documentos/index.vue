@@ -930,6 +930,24 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                                                 <span v-if="!selectedDoc.tags.length" class="text-sm text-slate-400">—</span>
                                             </div>
                                         </div>
+                                        <div v-if="selectedDoc.tecnologiasSugeridas?.length" class="mt-3">
+                                            <p class="text-xs font-semibold text-slate-500">Tecnologias</p>
+                                            <div class="mt-1 flex flex-wrap gap-2">
+                                                <span v-for="t in selectedDoc.tecnologiasSugeridas" :key="t" class="badge bg-emerald-50 text-emerald-700">{{ t }}</span>
+                                            </div>
+                                        </div>
+                                        <div v-if="selectedDoc.frameworksSugeridos?.length" class="mt-3">
+                                            <p class="text-xs font-semibold text-slate-500">Frameworks</p>
+                                            <div class="mt-1 flex flex-wrap gap-2">
+                                                <span v-for="f in selectedDoc.frameworksSugeridos" :key="f" class="badge bg-purple-50 text-purple-700">{{ f }}</span>
+                                            </div>
+                                        </div>
+                                        <div v-if="selectedDoc.palavrasChaveIA?.length" class="mt-3">
+                                            <p class="text-xs font-semibold text-slate-500">Palavras-chave</p>
+                                            <div class="mt-1 flex flex-wrap gap-2">
+                                                <span v-for="k in selectedDoc.palavrasChaveIA" :key="k" class="badge bg-amber-50 text-amber-700">{{ k }}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
