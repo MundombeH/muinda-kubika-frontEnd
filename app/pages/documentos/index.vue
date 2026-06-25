@@ -71,6 +71,31 @@ const aiSuggestionsDetail = ref<import("~/types/platform").AISuggestion | null>(
 const showAiSuggestionsDetail = computed(() =>
     aiSuggestionsDetail.value?.pendenteConfirmacao ? aiSuggestionsDetail.value : null,
 );
+
+const detailLatestTech = computed(() => {
+    if (showAiSuggestionsDetail.value?.tecnologiasSugeridas?.length) {
+        return showAiSuggestionsDetail.value.tecnologiasSugeridas;
+    }
+    return (selectedDoc.value?.tecnologiasSugeridas ?? []).map(t => ({ valor: t, confianca: 0 }));
+});
+
+const detailLatestFrameworks = computed(() => {
+    if (showAiSuggestionsDetail.value?.frameworksSugeridos?.length) {
+        return showAiSuggestionsDetail.value.frameworksSugeridos;
+    }
+    return (selectedDoc.value?.frameworksSugeridos ?? []).map(f => ({ valor: f, confianca: 0 }));
+});
+
+const detailLatestKeywords = computed(() => {
+    if (showAiSuggestionsDetail.value?.palavrasChaveIA?.length) {
+        return showAiSuggestionsDetail.value.palavrasChaveIA;
+    }
+    return (selectedDoc.value?.palavrasChaveIA ?? []).map(k => ({ valor: k, confianca: 0 }));
+});
+
+const detailHasAnyAiData = computed(() =>
+    detailLatestTech.value.length > 0 || detailLatestFrameworks.value.length > 0 || detailLatestKeywords.value.length > 0
+);
 const loadingAiDetail = ref(false);
 
 const selectedDoc = computed(() => {
@@ -759,6 +784,36 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                                                 <span v-for="tag in selectedDoc.tags" :key="tag" class="badge bg-indigo-50 text-indigo-700">#{{ tag }}</span>
                                                 <span v-if="!selectedDoc.tags.length" class="text-sm text-slate-400">—</span>
                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div v-if="detailHasAnyAiData" class="mt-6 border-t border-slate-100 pt-6">
+                                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">
+                                        {{ showAiSuggestionsDetail ? 'Sugestões da IA' : 'Análise da IA' }}
+                                    </p>
+                                    <div v-if="detailLatestKeywords.length" class="mb-3">
+                                        <span class="text-xs text-slate-500">Palavras-chave:</span>
+                                        <div class="mt-1 flex flex-wrap gap-1">
+                                            <span v-for="kw in detailLatestKeywords" :key="kw.valor" class="badge bg-amber-50 text-amber-700 text-xs">
+                                                {{ kw.valor }}<template v-if="kw.confianca"> ({{ kw.confianca }}%)</template>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div v-if="detailLatestTech.length" class="mb-3">
+                                        <span class="text-xs text-slate-500">Tecnologias:</span>
+                                        <div class="mt-1 flex flex-wrap gap-1">
+                                            <span v-for="tec in detailLatestTech" :key="tec.valor" class="badge bg-emerald-50 text-emerald-700 text-xs">
+                                                {{ tec.valor }}<template v-if="tec.confianca"> ({{ tec.confianca }}%)</template>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div v-if="detailLatestFrameworks.length">
+                                        <span class="text-xs text-slate-500">Frameworks:</span>
+                                        <div class="mt-1 flex flex-wrap gap-1">
+                                            <span v-for="fw in detailLatestFrameworks" :key="fw.valor" class="badge bg-purple-50 text-purple-700 text-xs">
+                                                {{ fw.valor }}<template v-if="fw.confianca"> ({{ fw.confianca }}%)</template>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>

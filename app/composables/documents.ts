@@ -17,6 +17,9 @@ function mapDocument(dto: any): AppDocument {
     coverUrl: dto.capaUrl ?? "",
     urlGithub: dto.urlGithub ?? "",
     tecnologiasUsadas: Array.from(dto.tecnologiasUsadas ?? []),
+    tecnologiasSugeridas: Array.from(dto.tecnologiasSugeridas ?? []),
+    frameworksSugeridos: Array.from(dto.frameworksSugeridos ?? []),
+    palavrasChaveIA: Array.from(dto.palavrasChaveIA ?? []),
     version: dto.versao,
     approvedByName: dto.aprovadoPor?.nome ?? "",
     categories: Array.from(dto.categorias ?? []).map((c: any) => c.descricao),
@@ -149,6 +152,9 @@ export const useDocumentsStore = defineStore("documents", () => {
       if (changes.coverUrl !== undefined) body.capaUrl = changes.coverUrl;
       if (changes.categories !== undefined) body.categorias = changes.categories;
       if (changes.tags !== undefined) body.tags = changes.tags;
+      if (changes.tecnologiasSugeridas !== undefined) body.tecnologiasSugeridas = changes.tecnologiasSugeridas;
+      if (changes.frameworksSugeridos !== undefined) body.frameworksSugeridos = changes.frameworksSugeridos;
+      if (changes.palavrasChaveIA !== undefined) body.palavrasChaveIA = changes.palavrasChaveIA;
       await auth.apiRequest(`/documento/${documentId}`, { method: "PATCH", body });
     } catch (error) {
       if (oldDoc) {

@@ -137,6 +137,9 @@ export interface AppDocument {
   approvedByName?: string;
   urlGithub: string;
   tecnologiasUsadas: string[];
+  tecnologiasSugeridas: string[];
+  frameworksSugeridos: string[];
+  palavrasChaveIA: string[];
   aiAutoFill?: boolean;
   reviewHistory: DocumentReviewEntry[];
   aiSuggestions?: AISuggestion;

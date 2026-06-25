@@ -71,6 +71,31 @@ const aiSuggestions = ref<import("~/types/platform").AISuggestion | null>(null);
 const showAiSuggestions = computed(() =>
     aiSuggestions.value?.pendenteConfirmacao ? aiSuggestions.value : null,
 );
+
+const latestTech = computed(() => {
+    if (showAiSuggestions.value?.tecnologiasSugeridas?.length) {
+        return showAiSuggestions.value.tecnologiasSugeridas;
+    }
+    return (documentItem.value?.tecnologiasSugeridas ?? []).map(t => ({ valor: t, confianca: 0 }));
+});
+
+const latestFrameworks = computed(() => {
+    if (showAiSuggestions.value?.frameworksSugeridos?.length) {
+        return showAiSuggestions.value.frameworksSugeridos;
+    }
+    return (documentItem.value?.frameworksSugeridos ?? []).map(f => ({ valor: f, confianca: 0 }));
+});
+
+const latestKeywords = computed(() => {
+    if (showAiSuggestions.value?.palavrasChaveIA?.length) {
+        return showAiSuggestions.value.palavrasChaveIA;
+    }
+    return (documentItem.value?.palavrasChaveIA ?? []).map(k => ({ valor: k, confianca: 0 }));
+});
+
+const hasAnyAiData = computed(() =>
+    latestTech.value.length > 0 || latestFrameworks.value.length > 0 || latestKeywords.value.length > 0
+);
 const loadingAi = ref(false);
 const saving = ref(false);
 const confirming = ref(false);
@@ -589,35 +614,35 @@ if (!documentItem.value) {
                     </div>
                 </div>
 
-                <div v-if="showAiSuggestions" class="mt-6 border-t border-slate-100 pt-6">
+                <div v-if="hasAnyAiData" class="mt-6 border-t border-slate-100 pt-6">
                     <p class="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-3">
-                        Sugestões da IA
+                        {{ showAiSuggestions ? 'Sugestões da IA' : 'Análise da IA' }}
                     </p>
-                    <div v-if="showAiSuggestions.subcategoriaSugerida" class="mb-3">
+                    <div v-if="showAiSuggestions?.subcategoriaSugerida" class="mb-3">
                         <span class="text-xs text-slate-500">Subcategoria:</span>
                         <span class="ml-1 text-sm font-medium text-slate-700">{{ showAiSuggestions.subcategoriaSugerida }} ({{ showAiSuggestions.subcategoriaConfianca }}%)</span>
                     </div>
-                    <div v-if="showAiSuggestions.palavrasChaveIA?.length" class="mb-3">
+                    <div v-if="latestKeywords.length" class="mb-3">
                         <span class="text-xs text-slate-500">Palavras-chave:</span>
                         <div class="mt-1 flex flex-wrap gap-1">
-                            <span v-for="kw in showAiSuggestions.palavrasChaveIA" :key="kw.valor" class="badge bg-amber-50 text-amber-700 text-xs">
-                                {{ kw.valor }} ({{ kw.confianca }}%)
+                            <span v-for="kw in latestKeywords" :key="kw.valor" class="badge bg-amber-50 text-amber-700 text-xs">
+                                {{ kw.valor }}<template v-if="kw.confianca"> ({{ kw.confianca }}%)</template>
                             </span>
                         </div>
                     </div>
-                    <div v-if="showAiSuggestions.tecnologiasSugeridas?.length" class="mb-3">
+                    <div v-if="latestTech.length" class="mb-3">
                         <span class="text-xs text-slate-500">Tecnologias:</span>
                         <div class="mt-1 flex flex-wrap gap-1">
-                            <span v-for="tec in showAiSuggestions.tecnologiasSugeridas" :key="tec.valor" class="badge bg-emerald-50 text-emerald-700 text-xs">
-                                {{ tec.valor }} ({{ tec.confianca }}%)
+                            <span v-for="tec in latestTech" :key="tec.valor" class="badge bg-emerald-50 text-emerald-700 text-xs">
+                                {{ tec.valor }}<template v-if="tec.confianca"> ({{ tec.confianca }}%)</template>
                             </span>
                         </div>
                     </div>
-                    <div v-if="showAiSuggestions.frameworksSugeridos?.length">
+                    <div v-if="latestFrameworks.length">
                         <span class="text-xs text-slate-500">Frameworks:</span>
                         <div class="mt-1 flex flex-wrap gap-1">
-                            <span v-for="fw in showAiSuggestions.frameworksSugeridos" :key="fw.valor" class="badge bg-purple-50 text-purple-700 text-xs">
-                                {{ fw.valor }} ({{ fw.confianca }}%)
+                            <span v-for="fw in latestFrameworks" :key="fw.valor" class="badge bg-purple-50 text-purple-700 text-xs">
+                                {{ fw.valor }}<template v-if="fw.confianca"> ({{ fw.confianca }}%)</template>
                             </span>
                         </div>
                     </div>
