@@ -40,13 +40,14 @@ const schema = {
 };
 
 const onSubmit = async (values: Record<string, string>) => {
+    const v = values as Record<string, string> & { nome: string; email: string; numeroDeTelefone: string; dataDeNascimento: string; password: string };
     try {
         await auth.register({
-            nome: values.nome,
-            email: values.email,
-            numeroDeTelefone: values.numeroDeTelefone,
-            dataDeNascimento: values.dataDeNascimento,
-            password: values.password,
+            nome: v.nome,
+            email: v.email,
+            numeroDeTelefone: v.numeroDeTelefone,
+            dataDeNascimento: v.dataDeNascimento,
+            password: v.password,
         });
         await navigateTo("/dashboard");
     } catch (error) {

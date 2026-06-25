@@ -28,7 +28,7 @@ const schema = {
 
 const onSubmit = async (values: Record<string, string>) => {
     try {
-        await auth.login(values as LoginPayload);
+        await auth.login(values as unknown as LoginPayload);
         await navigateTo("/dashboard");
     } catch (error) {
         toast.error(

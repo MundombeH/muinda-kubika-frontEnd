@@ -433,33 +433,33 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                 </select>
             </div>
             <div>
-                <label class="label-base">Instituição</label>
-                <select v-model="selectedInstitution" class="input-base">
-                    <option value="">Todas</option>
-                    <option v-for="i in inst.institutions" :key="i.id" :value="i.id">
-                        {{ i.name }}
-                    </option>
-                </select>
+                <SearchSelect
+                    :model-value="selectedInstitution"
+                    :options="inst.institutions.map(i => ({ value: i.id, label: i.name }))"
+                    placeholder="Todas"
+                    label="Instituição"
+                    @update:model-value="(v: any) => selectedInstitution = v"
+                />
             </div>
         </section>
         <section class="card grid gap-4 p-5 md:grid-cols-4">
             <div>
-                <label class="label-base">Categoria</label>
-                <select v-model="selectedCategory" class="input-base">
-                    <option value="">Todas</option>
-                    <option v-for="cat in availableCategories" :key="cat" :value="cat">
-                        {{ cat }}
-                    </option>
-                </select>
+                <SearchSelect
+                    :model-value="selectedCategory"
+                    :options="availableCategories.map(c => ({ value: c, label: c }))"
+                    placeholder="Todas"
+                    label="Categoria"
+                    @update:model-value="(v: any) => selectedCategory = v"
+                />
             </div>
             <div>
-                <label class="label-base">Tag</label>
-                <select v-model="selectedTag" class="input-base">
-                    <option value="">Todas</option>
-                    <option v-for="tag in availableTags" :key="tag" :value="tag">
-                        {{ tag }}
-                    </option>
-                </select>
+                <SearchSelect
+                    :model-value="selectedTag"
+                    :options="availableTags.map(t => ({ value: t, label: t }))"
+                    placeholder="Todas"
+                    label="Tag"
+                    @update:model-value="(v: any) => selectedTag = v"
+                />
             </div>
             <div>
                 <label class="label-base">Filtro</label>
@@ -600,7 +600,7 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                                         "
                                         class="btn-primary"
                                         :disabled="processingAction === 'approve'"
-                                        @click="handleAction(async () => { processingAction = 'approve'; await docs.approveDocument(selectedDoc.id); processingAction = null; })"
+                                        @click="handleAction(async () => { processingAction = 'approve'; await docs.approveDocument(selectedDoc!.id); processingAction = null; })"
                                     >
                                         {{ processingAction === 'approve' ? 'A aprovar...' : 'Aprovar' }}
                                     </button>
@@ -613,7 +613,7 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                                         "
                                         class="btn-secondary"
                                         :disabled="processingAction === 'reject'"
-                                        @click="handleAction(async () => { processingAction = 'reject'; await docs.rejectDocument(selectedDoc.id); processingAction = null; })"
+                                        @click="handleAction(async () => { processingAction = 'reject'; await docs.rejectDocument(selectedDoc!.id); processingAction = null; })"
                                     >
                                         {{ processingAction === 'reject' ? 'A rejeitar...' : 'Rejeitar' }}
                                     </button>
@@ -624,7 +624,7 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                                         "
                                         class="btn-primary"
                                         :disabled="processingAction === 'publish'"
-                                        @click="handleAction(async () => { processingAction = 'publish'; await docs.publishDocument(selectedDoc.id); processingAction = null; })"
+                                        @click="handleAction(async () => { processingAction = 'publish'; await docs.publishDocument(selectedDoc!.id); processingAction = null; })"
                                     >
                                         {{ processingAction === 'publish' ? 'A publicar...' : 'Publicar' }}
                                     </button>
@@ -885,12 +885,14 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                                     </div>
 
                                     <div>
-                                        <label class="label-base">Instituição</label>
-                                        <Field as="select" name="institutionId" class="input-base">
-                                            <option value="">Selecionar...</option>
-                                            <option v-for="institution in inst.institutions" :key="institution.id" :value="institution.id">
-                                                {{ institution.name }}
-                                            </option>
+                                        <Field v-slot="{ setValue }" name="institutionId">
+                                            <SearchSelect
+                                                :model-value="values.institutionId || ''"
+                                                :options="inst.institutions.map(i => ({ value: i.id, label: i.name }))"
+                                                placeholder="Selecionar..."
+                                                label="Instituição"
+                                                @update:model-value="(v: any) => setValue(v)"
+                                            />
                                         </Field>
                                         <ErrorMessage name="institutionId" class="mt-2 block text-sm text-rose-600" />
                                     </div>

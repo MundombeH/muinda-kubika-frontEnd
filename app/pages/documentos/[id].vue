@@ -109,7 +109,7 @@ async function carregarSugestoesIA() {
     try {
         const data = await docs.fetchAISuggestions(documentItem.value.id);
         aiSuggestions.value = data;
-        preencherComSugestoesIA(data);
+        if (data) preencherComSugestoesIA(data);
     } catch {
         aiSuggestions.value = null;
     } finally {

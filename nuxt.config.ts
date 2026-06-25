@@ -21,6 +21,7 @@ export default defineNuxtConfig({
     public: {
       appName: "Muinda Kubika",
       apiBaseUrl:
+        // @ts-expect-error — process is available in Node runtime
         process.env.NUXT_PUBLIC_API_BASE_URL || "http://localhost:8080",
     },
   },

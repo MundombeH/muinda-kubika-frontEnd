@@ -196,7 +196,7 @@ function resetForm() {
             <button
                 v-if="isAdmin"
                 class="btn-primary shrink-0"
-                @click="showCreateModal = true"
+                @click="openCreateModal"
             >
                 Nova Instituição
             </button>
@@ -323,9 +323,56 @@ function resetForm() {
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <label class="label-base">Bairro (UUID) *</label>
-                                            <input v-model="newInstitution.bairro" class="input-base" required placeholder="UUID do bairro" />
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="label-base">País *</label>
+                                                <select v-model="selectedPais" class="input-base" required :disabled="loadingPaises">
+                                                    <option value="">Selecione...</option>
+                                                    <option v-for="p in paises" :key="p.id" :value="p.id">{{ p.descricao }}</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="label-base">Província *</label>
+                                                <select v-model="selectedProvincia" class="input-base" required :disabled="!selectedPais || loadingProvincias">
+                                                    <option value="">Selecione...</option>
+                                                    <option v-for="pr in provincias" :key="pr.id" :value="pr.id">{{ pr.descricao }}</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="label-base">Município *</label>
+                                                <select v-model="selectedMunicipio" class="input-base" required :disabled="!selectedProvincia || loadingMunicipios">
+                                                    <option value="">Selecione...</option>
+                                                    <option v-for="m in municipios" :key="m.id" :value="m.id">{{ m.descricao }}</option>
+                                                </select>
+                                            </div>
+                                            <div class="relative">
+                                                <label class="label-base">Bairro *</label>
+                                                <input
+                                                    v-model="bairroSearch"
+                                                    class="input-base"
+                                                    required
+                                                    :disabled="!selectedMunicipio || loadingBairros"
+                                                    placeholder="Pesquisar bairro..."
+                                                    autocomplete="off"
+                                                />
+                                                <div
+                                                    v-if="selectedMunicipio && filteredBairros.length > 0 && !selectedBairroId"
+                                                    class="absolute z-50 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg"
+                                                >
+                                                    <button
+                                                        v-for="b in filteredBairros"
+                                                        :key="b.id"
+                                                        type="button"
+                                                        class="block w-full px-3 py-2 text-left text-sm hover:bg-indigo-50"
+                                                        @click="selectBairro(b.id, b.descricao)"
+                                                    >
+                                                        {{ b.descricao }}
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
 
                                         <div class="flex justify-end gap-3 pt-2">

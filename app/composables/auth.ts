@@ -236,7 +236,7 @@ export const useAuthStore = defineStore("auth", () => {
     const profiles = buildProfilesFromSession();
     const idx = accounts.value.findIndex((a) => a.user.id === user.id);
     if (idx >= 0) {
-      accounts.value[idx] = { ...accounts.value[idx], profiles };
+      accounts.value[idx] = { user: accounts.value[idx]!.user, profiles };
     } else {
       accounts.value = [...accounts.value, { user, profiles }];
     }

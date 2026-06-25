@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ErrorMessage, Field, Form } from "vee-validate";
 import { useToast } from "vue-toastification";
-import type { UserRole } from "~/types/platform";
+import type { UserRole, ProfileRequestPayload } from "~/types/platform";
 
 definePageMeta({ middleware: "auth" });
 
@@ -152,7 +152,7 @@ function buildBody(values: Record<string, string | string[]>) {
 
 const onSubmit = async (values: Record<string, string | string[]>) => {
     try {
-        const body = buildBody(values);
+        const body = buildBody(values) as unknown as ProfileRequestPayload;
         await approvalsStore.requestProfile(body);
 
         await navigateTo("/perfil");
@@ -182,6 +182,7 @@ const onSubmit = async (values: Record<string, string | string[]>) => {
         <Form
             :validation-schema="schema"
             class="space-y-6"
+            v-slot="{ values }"
             @submit="onSubmit"
         >
             <div class="card p-6">
@@ -247,16 +248,14 @@ const onSubmit = async (values: Record<string, string | string[]>) => {
                 </h2>
 
                 <div v-if="isSingleInstitution">
-                    <label class="label-base">Instituição de ensino</label>
-                    <Field as="select" name="instituicaoId" class="input-base">
-                        <option value="">Selecionar...</option>
-                        <option
-                            v-for="institution in inst.institutions"
-                            :key="institution.id"
-                            :value="institution.id"
-                        >
-                            {{ institution.name }}
-                        </option>
+                    <Field v-slot="{ setValue }" name="instituicaoId">
+                        <SearchSelect
+                            :model-value="values.instituicaoId || ''"
+                            :options="inst.institutions.map(i => ({ value: i.id, label: i.name }))"
+                            placeholder="Selecionar..."
+                            label="Instituição de ensino"
+                            @update:model-value="(v: any) => setValue(v)"
+                        />
                     </Field>
                     <ErrorMessage
                         name="instituicaoId"
@@ -265,24 +264,16 @@ const onSubmit = async (values: Record<string, string | string[]>) => {
                 </div>
 
                 <div v-else>
-                    <label class="label-base">Instituições associadas</label>
-                    <Field
-                        as="select"
-                        name="institutionIds"
-                        class="input-base min-h-36"
-                        multiple
-                    >
-                        <option
-                            v-for="institution in inst.institutions"
-                            :key="institution.id"
-                            :value="institution.id"
-                        >
-                            {{ institution.name }}
-                        </option>
+                    <Field v-slot="{ setValue }" name="institutionIds">
+                        <SearchSelect
+                            :model-value="(() => { const v = values.institutionIds; return Array.isArray(v) ? v : v ? [String(v)] : []; })()"
+                            :options="inst.institutions.map(i => ({ value: i.id, label: i.name }))"
+                            placeholder="Selecionar..."
+                            label="Instituições associadas"
+                            multiple
+                            @update:model-value="(v: any) => setValue(v)"
+                        />
                     </Field>
-                    <p class="mt-2 text-xs text-slate-500">
-                        Use Ctrl/Cmd para selecionar mais de uma.
-                    </p>
                     <ErrorMessage
                         name="institutionIds"
                         class="mt-2 block text-sm text-rose-600"
