@@ -193,7 +193,24 @@ export const useDocumentsStore = defineStore("documents", () => {
     });
   }
 
-  async function confirmUserMetadata(documentId: string) {
+  async function confirmUserMetadata(
+    documentId: string,
+    selections?: {
+      tecnologiasSugeridas?: string[];
+      frameworksSugeridos?: string[];
+      palavrasChaveIA?: string[];
+    },
+  ) {
+    if (selections) {
+      await auth.apiRequest(`/ia/documentos/${documentId}/confirmar`, {
+        method: "POST",
+        body: selections,
+      });
+    } else {
+      await auth.apiRequest(`/ia/documentos/${documentId}/confirmar`, {
+        method: "POST",
+      });
+    }
     await updateDocument(documentId, { status: "PENDENTE_REVISAO_ADMIN" });
   }
 

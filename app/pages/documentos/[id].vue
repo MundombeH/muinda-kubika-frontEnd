@@ -101,6 +101,66 @@ const saving = ref(false);
 const confirming = ref(false);
 const processingAction = ref<string | null>(null);
 
+const selectedTech = ref<Set<string>>(new Set());
+const selectedFrameworks = ref<Set<string>>(new Set());
+const selectedKeywords = ref<Set<string>>(new Set());
+
+const manualTechInput = ref('');
+const manualTech = ref<string[]>([]);
+const manualFrameworksInput = ref('');
+const manualFrameworks = ref<string[]>([]);
+const manualKeywordsInput = ref('');
+const manualKeywords = ref<string[]>([]);
+
+watchEffect(() => {
+    if (showAiSuggestions.value) {
+        selectedTech.value = new Set(showAiSuggestions.value.tecnologiasSugeridas?.map(t => t.valor) ?? []);
+        selectedFrameworks.value = new Set(showAiSuggestions.value.frameworksSugeridos?.map(f => f.valor) ?? []);
+        selectedKeywords.value = new Set(showAiSuggestions.value.palavrasChaveIA?.map(k => k.valor) ?? []);
+    }
+});
+
+function toggleTech(valor: string) {
+    const s = new Set(selectedTech.value);
+    s.has(valor) ? s.delete(valor) : s.add(valor);
+    selectedTech.value = s;
+}
+function toggleFramework(valor: string) {
+    const s = new Set(selectedFrameworks.value);
+    s.has(valor) ? s.delete(valor) : s.add(valor);
+    selectedFrameworks.value = s;
+}
+function toggleKeyword(valor: string) {
+    const s = new Set(selectedKeywords.value);
+    s.has(valor) ? s.delete(valor) : s.add(valor);
+    selectedKeywords.value = s;
+}
+
+function addManualTech() {
+    const v = manualTechInput.value.trim();
+    if (v && !manualTech.value.includes(v)) manualTech.value.push(v);
+    manualTechInput.value = '';
+}
+function removeManualTech(valor: string) {
+    manualTech.value = manualTech.value.filter(t => t !== valor);
+}
+function addManualFramework() {
+    const v = manualFrameworksInput.value.trim();
+    if (v && !manualFrameworks.value.includes(v)) manualFrameworks.value.push(v);
+    manualFrameworksInput.value = '';
+}
+function removeManualFramework(valor: string) {
+    manualFrameworks.value = manualFrameworks.value.filter(f => f !== valor);
+}
+function addManualKeyword() {
+    const v = manualKeywordsInput.value.trim();
+    if (v && !manualKeywords.value.includes(v)) manualKeywords.value.push(v);
+    manualKeywordsInput.value = '';
+}
+function removeManualKeyword(valor: string) {
+    manualKeywords.value = manualKeywords.value.filter(k => k !== valor);
+}
+
 watchEffect(() => {
     if (!documentItem.value) return;
     editable.title = documentItem.value.title;
@@ -160,7 +220,11 @@ async function handleConfirmMetadata() {
             categories: editable.categories.split(",").map((c) => stripConfidence(c.trim())).filter(Boolean),
             tags: editable.tags.split(",").map((t) => t.trim()).filter(Boolean),
         });
-        await docs.confirmUserMetadata(documentItem.value.id);
+        await docs.confirmUserMetadata(documentItem.value.id, {
+            tecnologiasSugeridas: [...selectedTech.value, ...manualTech.value],
+            frameworksSugeridos: [...selectedFrameworks.value, ...manualFrameworks.value],
+            palavrasChaveIA: [...selectedKeywords.value, ...manualKeywords.value],
+        });
         toast.success("Metadados confirmados.");
     } catch (error) {
         toast.error(toFriendlyApiErrorMessage(error, "Não foi possível confirmar os metadados."));
@@ -423,48 +487,96 @@ if (!documentItem.value) {
                     </div>
                 </div>
                 <div class="md:col-span-2">
-                    <label class="label-base">Palavras-chave (IA)</label>
+                    <label class="label-base">Palavras-chave</label>
                     <div class="mt-1 flex flex-wrap gap-1">
                         <template v-if="showAiSuggestions?.palavrasChaveIA?.length">
                             <span
                                 v-for="kw in showAiSuggestions.palavrasChaveIA"
                                 :key="kw.valor"
-                                class="badge bg-amber-50 text-amber-700 text-xs"
+                                class="text-xs cursor-pointer select-none"
+                                :class="selectedKeywords.has(kw.valor) ? 'badge bg-amber-500 text-white' : 'badge bg-amber-50 text-amber-700 hover:bg-amber-100'"
+                                @click="toggleKeyword(kw.valor)"
                             >
                                 {{ kw.valor }} ({{ kw.confianca }}%)
                             </span>
                         </template>
                         <span v-else class="text-xs text-slate-400">Nenhuma sugestão.</span>
                     </div>
+                    <div v-if="manualKeywords.length" class="mt-1 flex flex-wrap gap-1">
+                        <span
+                            v-for="kw in manualKeywords"
+                            :key="kw"
+                            class="badge bg-amber-200 text-amber-800 text-xs flex items-center gap-1"
+                        >
+                            {{ kw }}
+                            <button class="text-amber-600 hover:text-amber-800 font-bold" @click="removeManualKeyword(kw)">&times;</button>
+                        </span>
+                    </div>
+                    <div class="mt-2 flex gap-1">
+                        <input v-model="manualKeywordsInput" class="input-base flex-1 text-xs" placeholder="Adicionar manualmente..." @keydown.enter="addManualKeyword" />
+                        <button class="btn-secondary text-xs" @click="addManualKeyword">+</button>
+                    </div>
                 </div>
                 <div class="md:col-span-2">
-                    <label class="label-base">Tecnologias (IA)</label>
+                    <label class="label-base">Tecnologias</label>
                     <div class="mt-1 flex flex-wrap gap-1">
                         <template v-if="showAiSuggestions?.tecnologiasSugeridas?.length">
                             <span
                                 v-for="tec in showAiSuggestions.tecnologiasSugeridas"
                                 :key="tec.valor"
-                                class="badge bg-emerald-50 text-emerald-700 text-xs"
+                                class="text-xs cursor-pointer select-none"
+                                :class="selectedTech.has(tec.valor) ? 'badge bg-emerald-500 text-white' : 'badge bg-emerald-50 text-emerald-700 hover:bg-emerald-100'"
+                                @click="toggleTech(tec.valor)"
                             >
                                 {{ tec.valor }} ({{ tec.confianca }}%)
                             </span>
                         </template>
                         <span v-else class="text-xs text-slate-400">Nenhuma sugestão.</span>
                     </div>
+                    <div v-if="manualTech.length" class="mt-1 flex flex-wrap gap-1">
+                        <span
+                            v-for="t in manualTech"
+                            :key="t"
+                            class="badge bg-emerald-200 text-emerald-800 text-xs flex items-center gap-1"
+                        >
+                            {{ t }}
+                            <button class="text-emerald-600 hover:text-emerald-800 font-bold" @click="removeManualTech(t)">&times;</button>
+                        </span>
+                    </div>
+                    <div class="mt-2 flex gap-1">
+                        <input v-model="manualTechInput" class="input-base flex-1 text-xs" placeholder="Adicionar manualmente..." @keydown.enter="addManualTech" />
+                        <button class="btn-secondary text-xs" @click="addManualTech">+</button>
+                    </div>
                 </div>
                 <div class="md:col-span-2">
-                    <label class="label-base">Frameworks (IA)</label>
+                    <label class="label-base">Frameworks</label>
                     <div class="mt-1 flex flex-wrap gap-1">
                         <template v-if="showAiSuggestions?.frameworksSugeridos?.length">
                             <span
                                 v-for="fw in showAiSuggestions.frameworksSugeridos"
                                 :key="fw.valor"
-                                class="badge bg-purple-50 text-purple-700 text-xs"
+                                class="text-xs cursor-pointer select-none"
+                                :class="selectedFrameworks.has(fw.valor) ? 'badge bg-purple-500 text-white' : 'badge bg-purple-50 text-purple-700 hover:bg-purple-100'"
+                                @click="toggleFramework(fw.valor)"
                             >
                                 {{ fw.valor }} ({{ fw.confianca }}%)
                             </span>
                         </template>
                         <span v-else class="text-xs text-slate-400">Nenhuma sugestão.</span>
+                    </div>
+                    <div v-if="manualFrameworks.length" class="mt-1 flex flex-wrap gap-1">
+                        <span
+                            v-for="fw in manualFrameworks"
+                            :key="fw"
+                            class="badge bg-purple-200 text-purple-800 text-xs flex items-center gap-1"
+                        >
+                            {{ fw }}
+                            <button class="text-purple-600 hover:text-purple-800 font-bold" @click="removeManualFramework(fw)">&times;</button>
+                        </span>
+                    </div>
+                    <div class="mt-2 flex gap-1">
+                        <input v-model="manualFrameworksInput" class="input-base flex-1 text-xs" placeholder="Adicionar manualmente..." @keydown.enter="addManualFramework" />
+                        <button class="btn-secondary text-xs" @click="addManualFramework">+</button>
                     </div>
                 </div>
             </div>
