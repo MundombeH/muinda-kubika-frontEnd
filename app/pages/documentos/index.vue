@@ -628,6 +628,20 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                                     </button>
                                 </div>
 
+                                <div v-if="showAiSuggestionsDetail?.conflitosDetectados?.length" class="mt-6 rounded-xl border border-red-200 bg-red-50 p-4">
+                                    <div class="flex items-start gap-3">
+                                        <Icon name="heroicons:exclamation-triangle" class="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+                                        <div>
+                                            <h3 class="text-sm font-bold text-red-800">Conflitos detectados pela IA</h3>
+                                            <ul class="mt-1 list-inside list-disc text-sm text-red-700">
+                                                <li v-for="conflito in showAiSuggestionsDetail.conflitosDetectados" :key="conflito">
+                                                    {{ conflito }}
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div v-if="canEditMetadata" class="mt-6 rounded-2xl border border-amber-200 bg-amber-50/50 p-5">
                                     <div class="flex items-start gap-3">
                                         <Icon name="heroicons:sparkles" class="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
@@ -690,7 +704,7 @@ async function onCreateSubmit(values: Record<string, string | boolean>) {
                                                     v-for="tag in showAiSuggestionsDetail.tagsSugeridas"
                                                     :key="tag.valor"
                                                     class="badge bg-indigo-50 text-indigo-700 text-xs cursor-pointer hover:bg-indigo-100"
-                                                    @click="editable.tags = editable.tags ? editable.tags + ', ' + tag.valor : tag.valor"
+                                                    @click="editable.tags = tag.valor"
                                                 >
                                                     {{ tag.valor }} ({{ tag.confianca }}%)
                                                 </span>

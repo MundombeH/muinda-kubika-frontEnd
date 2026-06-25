@@ -391,7 +391,7 @@ if (!documentItem.value) {
                             v-for="tag in showAiSuggestions.tagsSugeridas"
                             :key="tag.valor"
                             class="badge bg-indigo-50 text-indigo-700 text-xs cursor-pointer hover:bg-indigo-100"
-                            @click="editable.tags = editable.tags ? editable.tags + ', ' + tag.valor : tag.valor"
+                            @click="editable.tags = tag.valor"
                         >
                             {{ tag.valor }} ({{ tag.confianca }}%)
                         </span>
